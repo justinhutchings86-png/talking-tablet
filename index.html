@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Talking Tablet V1</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 10px;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+.button {
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    border: 2px solid #ddd;
+}
+
+.button img {
+    width: 60%;
+    height: auto;
+}
+
+.emoji {
+    font-size: 50px;
+}
+
+.label {
+    margin-top: 8px;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div id="app" class="grid"></div>
+
+<input type="file" id="imageUpload" accept="image/*" style="display:none" />
+
+<script>
+
+const PASSWORD = "1234";
+let editMode = false;
+let currentScreen = "home";
+let editingIndex = null;
+
+// DEFAULT DATA
+const defaultScreens = {
+    home: [
+        { label: "Drink", action: "drinks", emoji: "🥤" },
+        { label: "Eat", action: "food", emoji: "🍎" },
+        { label: "Help", speech: "I need help", emoji: "🆘" },
+
+        { label: "Bathroom", speech: "I need the bathroom", emoji: "🚽" },
+        { label: "Play", action: "play", emoji: "🎮" },
+        { label: "More", speech: "I want more", emoji: "➕" },
+
+        { label: "All Done", speech: "I am all done", emoji: "✔️" },
+        { label: "Happy", speech: "I feel happy", emoji: "😊" },
+        { label: "Mad", speech: "I feel mad", emoji: "😡" }
+    ],
+
+    food: [
+        { label: "Chicken", speech: "I want chicken", emoji: "🍗" },
+        { label: "Soup", speech: "I want soup", emoji: "🍲" },
+        { label: "Noodles", speech: "I want noodles", emoji: "🍜" },
+
+        { label: "Candy", speech: "I want candy", emoji: "🍬" },
+        { label: "Snack", speech: "I want a snack", emoji: "🍪" },
+
+        { label: "Back", action: "home", emoji: "⬅️" }
+    ],
+
+    drinks: [
+        { label: "Soda", speech: "I want soda", emoji: "🥤" },
+        { label: "Juice", speech: "I want juice", emoji: "🧃" },
+        { label: "Milk", speech: "I want milk", emoji: "🥛" },
+
+        { label: "Chocolate Milk", speech: "I want chocolate milk", emoji: "🍫🥛" },
+        { label: "Water", speech: "I want water", emoji: "💧" },
+
+        { label: "Back", action: "home", emoji: "⬅️" }
+    ],
+
+    play: [
+        { label: "iPad", speech: "I want the iPad", emoji: "📱" },
+        { label: "Toys", speech: "I want toys", emoji: "🧸" },
+        { label: "Outside", speech: "I want outside", emoji: "🌳" },
+
+        { label: "TV", speech: "I want TV", emoji: "📺" },
+        { label: "Music", speech: "I want music", emoji: "🎵" },
+
+        { label: "Back", action: "home", emoji: "⬅️" }
+    ]
+};
+
+let screens = JSON.parse(localStorage.getItem("aacData")) || defaultScreens;
+
+const app = document.getElementById("app");
+const fileInput = document.getElementById("imageUpload");
+
+// RENDER
+function renderScreen() {
+    app.innerHTML = "";
+
+    screens[currentScreen].forEach((btn, index) => {
+
+        const div = document.createElement("div");
+        div.className = "button";
+
+        if (btn.image) {
+            const img = document.createElement("img");
+            img.src = btn.image;
+            div.appendChild(img);
+        } else {
+            const emoji = document.createElement("div");
+            emoji.className = "emoji";
+            emoji.textContent = btn.emoji;
+            div.appendChild(emoji);
+        }
+
+        const label = document.createElement("div");
+        label.className = "label";
+        label.innerText = btn.label;
+
+        div.appendChild(label);
+
+        div.onclick = () => {
+            if (btn.action) {
+                currentScreen = btn.action;
+                renderScreen();
+            } else {
+                speak(btn.speech);
+            }
+        };
+
+        let pressTimer;
+
+        div.onmousedown = () => {
+            if (!editMode) return;
+
+            pressTimer = setTimeout(() => {
+                editButton(currentScreen, index);
+            }, 600);
+        };
+
+        div.onmouseup = () => clearTimeout(pressTimer);
+        div.onmouseleave = () => clearTimeout(pressTimer);
+
+        app.appendChild(div);
+    });
+
+    if (editMode) {
+        const lock = document.createElement("div");
+        lock.innerText = "LOCK";
+        lock.style.position = "fixed";
+        lock.style.bottom = "10px";
+        lock.style.right = "10px";
+        lock.style.background = "red";
+        lock.style.color = "white";
+        lock.style.padding = "10px";
+        lock.style.borderRadius = "8px";
+
+        lock.onclick = () => {
+            editMode = false;
+            renderScreen();
+        };
+
+        document.body.appendChild(lock);
+    }
+}
+
+// SPEECH
+function speak(text) {
+    const msg = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(msg);
+}
+
+// EDIT
+function editButton(screen, index) {
+    const btn = screens[screen][index];
+    editingIndex = { screen, index };
+
+    const newLabel = prompt("Label:", btn.label);
+    if (newLabel !== null) btn.label = newLabel;
+
+    const newSpeech = prompt("Speech:", btn.speech || "");
+    if (newSpeech !== null) btn.speech = newSpeech;
+
+    if (confirm("Upload a photo?")) {
+        fileInput.click();
+    }
+
+    saveData();
+    renderScreen();
+}
+
+// IMAGE UPLOAD
+fileInput.addEventListener("change", function () {
+    const file = this.files[0];
+    if (!file || !editingIndex) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        screens[editingIndex.screen][editingIndex.index].image = e.target.result;
+        saveData();
+        renderScreen();
+    };
+
+    reader.readAsDataURL(file);
+});
+
+// SAVE
+function saveData() {
+    localStorage.setItem("aacData", JSON.stringify(screens));
+}
+
+// UNLOCK
+let tapCount = 0;
+let timer;
+
+document.body.addEventListener("click", () => {
+    tapCount++;
+
+    if (tapCount === 3) {
+        const pass = prompt("Enter password:");
+        if (pass === PASSWORD) {
+            editMode = true;
+            alert("Edit Mode ON");
+            renderScreen();
+        }
+        tapCount = 0;
+    }
+
+    clearTimeout(timer);
+    timer = setTimeout(() => tapCount = 0, 800);
+});
+
+// START
+renderScreen();
+
+</script>
+
+</body>
+</html>

@@ -101,6 +101,7 @@ body {
 <div id="dropdown" class="dropdown">
     <div onclick="toggleEdit()">Toggle Edit Mode</div>
     <div onclick="changePin()">Change PIN</div>
+    <div onclick="resetApp()">Reset to Default</div>
 </div>
 
 <div id="app" class="grid"></div>
@@ -111,7 +112,7 @@ let PASSWORD = localStorage.getItem("aacPin") || "1234";
 let editMode = false;
 let currentScreen = "home";
 
-/* FULL DATA STRUCTURE */
+/* DATA */
 const defaultScreens = {
 
 home: [
@@ -257,12 +258,14 @@ function editButton(screen, index) {
     renderScreen();
 }
 
-/* PIN CONTROL */
+/* PIN */
 function toggleEdit() {
     const pass = prompt("Enter PIN:");
     if (pass === PASSWORD) {
         editMode = !editMode;
         alert(editMode ? "Edit Mode ON" : "Edit Mode OFF");
+    } else {
+        alert("Wrong PIN");
     }
 }
 
@@ -275,6 +278,18 @@ function changePin() {
         PASSWORD = newPin;
         localStorage.setItem("aacPin", newPin);
         alert("PIN Updated");
+    }
+}
+
+/* RESET */
+function resetApp() {
+    const pass = prompt("Enter PIN to reset:");
+    if (pass !== PASSWORD) return alert("Wrong PIN");
+
+    if (confirm("This will erase all changes. Continue?")) {
+        localStorage.removeItem("aacData");
+        alert("Reset complete");
+        location.reload();
     }
 }
 

@@ -45,6 +45,7 @@ body {
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.15);
     display: none;
+    overflow: hidden;
 }
 
 .dropdown div {
@@ -95,7 +96,7 @@ body {
     font-size: 18px;
 }
 
-/* CATEGORY COLORS */
+/* COLORS */
 .home { background: #6c757d; }
 .food { background: #ff8c42; }
 .drinks { background: #4dabf7; }
@@ -211,10 +212,12 @@ let screens = JSON.parse(localStorage.getItem("aacData")) || defaultScreens;
 const app = document.getElementById("app");
 const dropdown = document.getElementById("dropdown");
 
+/* MENU */
 function toggleMenu() {
     dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
 }
 
+/* RENDER */
 function renderScreen() {
     app.className = "grid " + sizeMode;
     app.innerHTML = "";
@@ -250,8 +253,64 @@ function renderScreen() {
     });
 }
 
+/* SPEECH */
 function speak(text) {
     speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+}
+
+/* EDIT */
+function editButton(screen, index) {
+    const btn = screens[screen][index];
+
+    const newLabel = prompt("Label:", btn.label);
+    if (newLabel !== null) btn.label = newLabel;
+
+    const newSpeech = prompt("Speech:", btn.speech || "");
+    if (newSpeech !== null) btn.speech = newSpeech;
+
+    const newEmoji = prompt("Emoji:", btn.emoji);
+    if (newEmoji) btn.emoji = newEmoji;
+
+    saveData();
+    renderScreen();
+}
+
+/* SAVE */
+function saveData() {
+    localStorage.setItem("aacData", JSON.stringify(screens));
+}
+
+/* PIN FUNCTIONS */
+function toggleEdit() {
+    const pass = prompt("Enter PIN:");
+    if (pass === PASSWORD) {
+        editMode = !editMode;
+        alert(editMode ? "Edit Mode ON" : "Edit Mode OFF");
+    } else {
+        alert("Wrong PIN");
+    }
+}
+
+function changePin() {
+    const current = prompt("Enter current PIN:");
+    if (current !== PASSWORD) return alert("Wrong PIN");
+
+    const newPin = prompt("Enter new PIN:");
+    if (newPin) {
+        PASSWORD = newPin;
+        localStorage.setItem("aacPin", newPin);
+        alert("PIN updated");
+    }
+}
+
+function resetApp() {
+    const pass = prompt("Enter PIN to reset:");
+    if (pass !== PASSWORD) return alert("Wrong PIN");
+
+    if (confirm("Erase all custom changes?")) {
+        localStorage.removeItem("aacData");
+        location.reload();
+    }
 }
 
 function toggleSize() {
@@ -260,8 +319,7 @@ function toggleSize() {
     renderScreen();
 }
 
-/* existing PIN, edit, reset functions unchanged */
-
+/* START */
 renderScreen();
 
 </script>

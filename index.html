@@ -32,11 +32,6 @@ body {
     border: 2px solid #ddd;
 }
 
-.button img {
-    width: 60%;
-    height: auto;
-}
-
 .emoji {
     font-size: 50px;
 }
@@ -132,6 +127,7 @@ function renderScreen() {
         div.appendChild(emoji);
         div.appendChild(label);
 
+        // TAP
         div.onclick = () => {
             if (btn.action) {
                 currentScreen = btn.action;
@@ -141,6 +137,7 @@ function renderScreen() {
             }
         };
 
+        // LONG PRESS
         let pressTimer;
 
         function startPress() {
@@ -164,6 +161,7 @@ function renderScreen() {
         app.appendChild(div);
     });
 
+    // LOCK BUTTON
     if (editMode) {
         const lock = document.createElement("div");
         lock.innerText = "LOCK";
@@ -190,7 +188,7 @@ function speak(text) {
     speechSynthesis.speak(msg);
 }
 
-// 🔥 NEW EDIT FUNCTION (EMOJI BASED)
+// 🔥 EMOJI EDIT FUNCTION
 function editButton(screen, index) {
     const btn = screens[screen][index];
 
@@ -216,160 +214,6 @@ function saveData() {
 }
 
 // UNLOCK
-let tapCount = 0;
-let lastTapTime = 0;
-
-function handleTap() {
-    const now = Date.now();
-    const gap = now - lastTapTime;
-
-    if (gap < 400) {
-        tapCount++;
-    } else {
-        tapCount = 1;
-    }
-
-    lastTapTime = now;
-
-    if (tapCount === 3) {
-        tapCount = 0;
-
-        setTimeout(() => {
-            const pass = prompt("Enter password:");
-            if (pass === PASSWORD) {
-                editMode = true;
-                alert("Edit Mode ON");
-                renderScreen();
-            } else {
-                alert("Wrong password");
-            }
-        }, 100);
-    }
-}
-
-let isTouchDevice = "ontouchstart" in window;
-
-document.body.addEventListener("touchstart", handleTap);
-
-if (!isTouchDevice) {
-    document.body.addEventListener("click", handleTap);
-}
-
-// START
-renderScreen();
-
-</script>
-
-</body>
-</html>
-        const label = document.createElement("div");
-        label.className = "label";
-        label.innerText = btn.label;
-
-        div.appendChild(label);
-
-        div.onclick = () => {
-            if (btn.action) {
-                currentScreen = btn.action;
-                renderScreen();
-            } else {
-                speak(btn.speech);
-            }
-        };
-
-        let pressTimer;
-
-        function startPress() {
-            if (!editMode) return;
-            pressTimer = setTimeout(() => {
-                editButton(currentScreen, index);
-            }, 600);
-        }
-
-        function endPress() {
-            clearTimeout(pressTimer);
-        }
-
-        div.addEventListener("mousedown", startPress);
-        div.addEventListener("mouseup", endPress);
-        div.addEventListener("mouseleave", endPress);
-
-        div.addEventListener("touchstart", startPress);
-        div.addEventListener("touchend", endPress);
-
-        app.appendChild(div);
-    });
-
-    if (editMode) {
-        const lock = document.createElement("div");
-        lock.innerText = "LOCK";
-        lock.style.position = "fixed";
-        lock.style.bottom = "10px";
-        lock.style.right = "10px";
-        lock.style.background = "red";
-        lock.style.color = "white";
-        lock.style.padding = "10px";
-        lock.style.borderRadius = "8px";
-
-        lock.onclick = () => {
-            editMode = false;
-            renderScreen();
-        };
-
-        document.body.appendChild(lock);
-    }
-}
-
-// SPEECH
-function speak(text) {
-    const msg = new SpeechSynthesisUtterance(text);
-    speechSynthesis.speak(msg);
-}
-
-// 🔥 FIXED EDIT FUNCTION (PHOTO WORKS NOW)
-function editButton(screen, index) {
-    const btn = screens[screen][index];
-    editingIndex = { screen, index };
-
-    const newLabel = prompt("Label:", btn.label);
-    if (newLabel !== null) btn.label = newLabel;
-
-    const newSpeech = prompt("Speech:", btn.speech || "");
-    if (newSpeech !== null) btn.speech = newSpeech;
-
-    const newEmoji = prompt("Enter emoji (example: 🍎 🧃 🚗 😊):", btn.emoji);
-
-    if (newEmoji !== null && newEmoji.trim() !== "") {
-        btn.emoji = newEmoji;
-        delete btn.image;
-    }
-
-    saveData();
-    renderScreen();
-}
-}
-
-// IMAGE UPLOAD
-fileInput.addEventListener("change", function () {
-    const file = this.files[0];
-    if (!file || !editingIndex) return;
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        screens[editingIndex.screen][editingIndex.index].image = e.target.result;
-        saveData();
-        renderScreen();
-    };
-
-    reader.readAsDataURL(file);
-});
-
-// SAVE
-function saveData() {
-    localStorage.setItem("aacData", JSON.stringify(screens));
-}
-
-// UNLOCK (same working version)
 let tapCount = 0;
 let lastTapTime = 0;
 

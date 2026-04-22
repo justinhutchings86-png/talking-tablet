@@ -210,14 +210,16 @@ function editButton(screen, index) {
     const newSpeech = prompt("Speech:", btn.speech || "");
     if (newSpeech !== null) btn.speech = newSpeech;
 
-    const imageChoice = prompt("Type 'photo' to add/change image, or Cancel to skip:");
+    const newEmoji = prompt("Enter emoji (example: 🍎 🧃 🚗 😊):", btn.emoji);
 
-    if (imageChoice && imageChoice.toLowerCase() === "photo") {
-        fileInput.click();
+    if (newEmoji !== null && newEmoji.trim() !== "") {
+        btn.emoji = newEmoji;
+        delete btn.image;
     }
 
     saveData();
     renderScreen();
+}
 }
 
 // IMAGE UPLOAD

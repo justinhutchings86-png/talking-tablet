@@ -51,7 +51,6 @@ body {
 <body>
 
 <div id="app" class="grid"></div>
-
 <input type="file" id="imageUpload" accept="image/*" style="display:none" />
 
 <script>
@@ -142,6 +141,7 @@ function renderScreen() {
 
         div.appendChild(label);
 
+        // NORMAL TAP
         div.onclick = () => {
             if (btn.action) {
                 currentScreen = btn.action;
@@ -151,18 +151,26 @@ function renderScreen() {
             }
         };
 
+        // 🔥 FIXED LONG PRESS (MOBILE + DESKTOP)
         let pressTimer;
 
-        div.onmousedown = () => {
+        function startPress() {
             if (!editMode) return;
-
             pressTimer = setTimeout(() => {
                 editButton(currentScreen, index);
             }, 600);
-        };
+        }
 
-        div.onmouseup = () => clearTimeout(pressTimer);
-        div.onmouseleave = () => clearTimeout(pressTimer);
+        function endPress() {
+            clearTimeout(pressTimer);
+        }
+
+        div.addEventListener("mousedown", startPress);
+        div.addEventListener("mouseup", endPress);
+        div.addEventListener("mouseleave", endPress);
+
+        div.addEventListener("touchstart", startPress);
+        div.addEventListener("touchend", endPress);
 
         app.appendChild(div);
     });
@@ -232,26 +240,46 @@ function saveData() {
     localStorage.setItem("aacData", JSON.stringify(screens));
 }
 
-// UNLOCK
+// 🔓 FIXED TRIPLE TAP (MOBILE SAFE)
 let tapCount = 0;
-let timer;
+let lastTapTime = 0;
 
-document.body.addEventListener("click", () => {
-    tapCount++;
+function handleTap() {
+    const now = Date.now();
+    const gap = now - lastTapTime;
 
-    if (tapCount === 3) {
-        const pass = prompt("Enter password:");
-        if (pass === PASSWORD) {
-            editMode = true;
-            alert("Edit Mode ON");
-            renderScreen();
-        }
-        tapCount = 0;
+    if (gap < 400) {
+        tapCount++;
+    } else {
+        tapCount = 1;
     }
 
-    clearTimeout(timer);
-    timer = setTimeout(() => tapCount = 0, 800);
-});
+    lastTapTime = now;
+
+    if (tapCount === 3) {
+        tapCount = 0;
+
+        setTimeout(() => {
+            const pass = prompt("Enter password:");
+            if (pass === PASSWORD) {
+                editMode = true;
+                alert("Edit Mode ON");
+                renderScreen();
+            } else {
+                alert("Wrong password");
+            }
+        }, 100);
+    }
+}
+
+// 🔥 PREVENT DOUBLE TRIGGERS
+let isTouchDevice = "ontouchstart" in window;
+
+document.body.addEventListener("touchstart", handleTap);
+
+if (!isTouchDevice) {
+    document.body.addEventListener("click", handleTap);
+}
 
 // START
 renderScreen();

@@ -141,7 +141,6 @@ function renderScreen() {
 
         div.appendChild(label);
 
-        // NORMAL TAP
         div.onclick = () => {
             if (btn.action) {
                 currentScreen = btn.action;
@@ -151,7 +150,6 @@ function renderScreen() {
             }
         };
 
-        // 🔥 FIXED LONG PRESS (MOBILE + DESKTOP)
         let pressTimer;
 
         function startPress() {
@@ -201,7 +199,7 @@ function speak(text) {
     speechSynthesis.speak(msg);
 }
 
-// EDIT
+// 🔥 FIXED EDIT FUNCTION (PHOTO WORKS NOW)
 function editButton(screen, index) {
     const btn = screens[screen][index];
     editingIndex = { screen, index };
@@ -212,7 +210,9 @@ function editButton(screen, index) {
     const newSpeech = prompt("Speech:", btn.speech || "");
     if (newSpeech !== null) btn.speech = newSpeech;
 
-    if (confirm("Upload a photo?")) {
+    const imageChoice = prompt("Type 'photo' to add/change image, or Cancel to skip:");
+
+    if (imageChoice && imageChoice.toLowerCase() === "photo") {
         fileInput.click();
     }
 
@@ -240,7 +240,7 @@ function saveData() {
     localStorage.setItem("aacData", JSON.stringify(screens));
 }
 
-// 🔓 FIXED TRIPLE TAP (MOBILE SAFE)
+// UNLOCK (same working version)
 let tapCount = 0;
 let lastTapTime = 0;
 
@@ -272,7 +272,6 @@ function handleTap() {
     }
 }
 
-// 🔥 PREVENT DOUBLE TRIGGERS
 let isTouchDevice = "ontouchstart" in window;
 
 document.body.addEventListener("touchstart", handleTap);

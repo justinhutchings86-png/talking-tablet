@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Talking Tablet V1</title>
+<title>Talking Tablet V2</title>
 
 <style>
 body {
@@ -11,11 +11,41 @@ body {
     background: #f4f4f4;
 }
 
+/* SETTINGS MENU */
+#menuBtn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    font-size: 30px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+#dropdown {
+    position: fixed;
+    top: 50px;
+    left: 10px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    display: none;
+    z-index: 1000;
+}
+
+#dropdown div {
+    padding: 10px;
+    cursor: pointer;
+}
+
+#dropdown div:hover {
+    background: #eee;
+}
+
 .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
-    padding: 10px;
+    padding: 60px 10px 10px;
     height: 100vh;
     box-sizing: border-box;
 }
@@ -45,15 +75,21 @@ body {
 
 <body>
 
+<div id="menuBtn">⚙️</div>
+
+<div id="dropdown">
+    <div onclick="toggleEdit()">Toggle Edit Mode</div>
+    <div onclick="changePin()">Change PIN</div>
+</div>
+
 <div id="app" class="grid"></div>
 
 <script>
 
-const PASSWORD = "1234";
+let PASSWORD = localStorage.getItem("aacPin") || "1234";
 let editMode = false;
 let currentScreen = "home";
 
-// DEFAULT DATA
 const defaultScreens = {
     home: [
         { label: "Drink", action: "drinks", emoji: "🥤" },
@@ -71,7 +107,7 @@ const defaultScreens = {
 
     food: [
         { label: "Chicken", speech: "I want chicken", emoji: "🍗" },
-        { label: "Soup", speech: "I want soup", emoji: "🍲" },
+        { label: "Pizza", speech: "I want pizza", emoji: "🍕" },
         { label: "Noodles", speech: "I want noodles", emoji: "🍜" },
 
         { label: "Candy", speech: "I want candy", emoji: "🍬" },
@@ -106,13 +142,18 @@ const defaultScreens = {
 let screens = JSON.parse(localStorage.getItem("aacData")) || defaultScreens;
 
 const app = document.getElementById("app");
+const menuBtn = document.getElementById("menuBtn");
+const dropdown = document.getElementById("dropdown");
+
+menuBtn.onclick = () => {
+    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+};
 
 // RENDER
 function renderScreen() {
     app.innerHTML = "";
 
     screens[currentScreen].forEach((btn, index) => {
-
         const div = document.createElement("div");
         div.className = "button";
 
@@ -127,7 +168,6 @@ function renderScreen() {
         div.appendChild(emoji);
         div.appendChild(label);
 
-        // TAP
         div.onclick = () => {
             if (btn.action) {
                 currentScreen = btn.action;
@@ -137,7 +177,6 @@ function renderScreen() {
             }
         };
 
-        // LONG PRESS
         let pressTimer;
 
         function startPress() {
@@ -160,26 +199,6 @@ function renderScreen() {
 
         app.appendChild(div);
     });
-
-    // LOCK BUTTON
-    if (editMode) {
-        const lock = document.createElement("div");
-        lock.innerText = "LOCK";
-        lock.style.position = "fixed";
-        lock.style.bottom = "10px";
-        lock.style.right = "10px";
-        lock.style.background = "red";
-        lock.style.color = "white";
-        lock.style.padding = "10px";
-        lock.style.borderRadius = "8px";
-
-        lock.onclick = () => {
-            editMode = false;
-            renderScreen();
-        };
-
-        document.body.appendChild(lock);
-    }
 }
 
 // SPEECH
@@ -188,7 +207,7 @@ function speak(text) {
     speechSynthesis.speak(msg);
 }
 
-// 🔥 EMOJI EDIT FUNCTION
+// EDIT
 function editButton(screen, index) {
     const btn = screens[screen][index];
 
@@ -198,8 +217,7 @@ function editButton(screen, index) {
     const newSpeech = prompt("Speech:", btn.speech || "");
     if (newSpeech !== null) btn.speech = newSpeech;
 
-    const newEmoji = prompt("Enter emoji (example: 🍎 🧃 🚗 😊):", btn.emoji);
-
+    const newEmoji = prompt("Enter emoji:", btn.emoji);
     if (newEmoji !== null && newEmoji.trim() !== "") {
         btn.emoji = newEmoji;
     }
@@ -208,49 +226,35 @@ function editButton(screen, index) {
     renderScreen();
 }
 
+// PIN FUNCTIONS
+function toggleEdit() {
+    const pass = prompt("Enter PIN:");
+    if (pass === PASSWORD) {
+        editMode = !editMode;
+        alert(editMode ? "Edit Mode ON" : "Edit Mode OFF");
+    } else {
+        alert("Wrong PIN");
+    }
+}
+
+function changePin() {
+    const current = prompt("Enter current PIN:");
+    if (current !== PASSWORD) {
+        alert("Wrong PIN");
+        return;
+    }
+
+    const newPin = prompt("Enter new PIN:");
+    if (newPin) {
+        PASSWORD = newPin;
+        localStorage.setItem("aacPin", newPin);
+        alert("PIN updated");
+    }
+}
+
 // SAVE
 function saveData() {
     localStorage.setItem("aacData", JSON.stringify(screens));
-}
-
-// UNLOCK
-let tapCount = 0;
-let lastTapTime = 0;
-
-function handleTap() {
-    const now = Date.now();
-    const gap = now - lastTapTime;
-
-    if (gap < 400) {
-        tapCount++;
-    } else {
-        tapCount = 1;
-    }
-
-    lastTapTime = now;
-
-    if (tapCount === 3) {
-        tapCount = 0;
-
-        setTimeout(() => {
-            const pass = prompt("Enter password:");
-            if (pass === PASSWORD) {
-                editMode = true;
-                alert("Edit Mode ON");
-                renderScreen();
-            } else {
-                alert("Wrong password");
-            }
-        }, 100);
-    }
-}
-
-let isTouchDevice = "ontouchstart" in window;
-
-document.body.addEventListener("touchstart", handleTap);
-
-if (!isTouchDevice) {
-    document.body.addEventListener("click", handleTap);
 }
 
 // START

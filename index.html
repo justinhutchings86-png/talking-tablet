@@ -51,14 +51,12 @@ body {
 <body>
 
 <div id="app" class="grid"></div>
-<input type="file" id="imageUpload" accept="image/*" style="display:none" />
 
 <script>
 
 const PASSWORD = "1234";
 let editMode = false;
 let currentScreen = "home";
-let editingIndex = null;
 
 // DEFAULT DATA
 const defaultScreens = {
@@ -113,7 +111,6 @@ const defaultScreens = {
 let screens = JSON.parse(localStorage.getItem("aacData")) || defaultScreens;
 
 const app = document.getElementById("app");
-const fileInput = document.getElementById("imageUpload");
 
 // RENDER
 function renderScreen() {
@@ -124,17 +121,147 @@ function renderScreen() {
         const div = document.createElement("div");
         div.className = "button";
 
-        if (btn.image) {
-            const img = document.createElement("img");
-            img.src = btn.image;
-            div.appendChild(img);
-        } else {
-            const emoji = document.createElement("div");
-            emoji.className = "emoji";
-            emoji.textContent = btn.emoji;
-            div.appendChild(emoji);
+        const emoji = document.createElement("div");
+        emoji.className = "emoji";
+        emoji.textContent = btn.emoji;
+
+        const label = document.createElement("div");
+        label.className = "label";
+        label.innerText = btn.label;
+
+        div.appendChild(emoji);
+        div.appendChild(label);
+
+        div.onclick = () => {
+            if (btn.action) {
+                currentScreen = btn.action;
+                renderScreen();
+            } else {
+                speak(btn.speech);
+            }
+        };
+
+        let pressTimer;
+
+        function startPress() {
+            if (!editMode) return;
+            pressTimer = setTimeout(() => {
+                editButton(currentScreen, index);
+            }, 600);
         }
 
+        function endPress() {
+            clearTimeout(pressTimer);
+        }
+
+        div.addEventListener("mousedown", startPress);
+        div.addEventListener("mouseup", endPress);
+        div.addEventListener("mouseleave", endPress);
+
+        div.addEventListener("touchstart", startPress);
+        div.addEventListener("touchend", endPress);
+
+        app.appendChild(div);
+    });
+
+    if (editMode) {
+        const lock = document.createElement("div");
+        lock.innerText = "LOCK";
+        lock.style.position = "fixed";
+        lock.style.bottom = "10px";
+        lock.style.right = "10px";
+        lock.style.background = "red";
+        lock.style.color = "white";
+        lock.style.padding = "10px";
+        lock.style.borderRadius = "8px";
+
+        lock.onclick = () => {
+            editMode = false;
+            renderScreen();
+        };
+
+        document.body.appendChild(lock);
+    }
+}
+
+// SPEECH
+function speak(text) {
+    const msg = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(msg);
+}
+
+// 🔥 NEW EDIT FUNCTION (EMOJI BASED)
+function editButton(screen, index) {
+    const btn = screens[screen][index];
+
+    const newLabel = prompt("Label:", btn.label);
+    if (newLabel !== null) btn.label = newLabel;
+
+    const newSpeech = prompt("Speech:", btn.speech || "");
+    if (newSpeech !== null) btn.speech = newSpeech;
+
+    const newEmoji = prompt("Enter emoji (example: 🍎 🧃 🚗 😊):", btn.emoji);
+
+    if (newEmoji !== null && newEmoji.trim() !== "") {
+        btn.emoji = newEmoji;
+    }
+
+    saveData();
+    renderScreen();
+}
+
+// SAVE
+function saveData() {
+    localStorage.setItem("aacData", JSON.stringify(screens));
+}
+
+// UNLOCK
+let tapCount = 0;
+let lastTapTime = 0;
+
+function handleTap() {
+    const now = Date.now();
+    const gap = now - lastTapTime;
+
+    if (gap < 400) {
+        tapCount++;
+    } else {
+        tapCount = 1;
+    }
+
+    lastTapTime = now;
+
+    if (tapCount === 3) {
+        tapCount = 0;
+
+        setTimeout(() => {
+            const pass = prompt("Enter password:");
+            if (pass === PASSWORD) {
+                editMode = true;
+                alert("Edit Mode ON");
+                renderScreen();
+            } else {
+                alert("Wrong password");
+            }
+        }, 100);
+    }
+}
+
+let isTouchDevice = "ontouchstart" in window;
+
+document.body.addEventListener("touchstart", handleTap);
+
+if (!isTouchDevice) {
+    document.body.addEventListener("click", handleTap);
+}
+
+// START
+renderScreen();
+
+</script>
+
+</body>
+</html>
         const label = document.createElement("div");
         label.className = "label";
         label.innerText = btn.label;

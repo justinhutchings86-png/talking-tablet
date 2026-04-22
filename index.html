@@ -71,7 +71,7 @@ const defaultScreens = {
 
     food: [
         { label: "Chicken", speech: "I want chicken", emoji: "🍗" },
-        { label: "Pizza", speech: "I want pizza", emoji: "🍕" },
+        { label: "Soup", speech: "I want soup", emoji: "🍲" },
         { label: "Noodles", speech: "I want noodles", emoji: "🍜" },
 
         { label: "Candy", speech: "I want candy", emoji: "🍬" },
@@ -198,7 +198,7 @@ function editButton(screen, index) {
     const newSpeech = prompt("Speech:", btn.speech || "");
     if (newSpeech !== null) btn.speech = newSpeech;
 
-    const newEmoji = prompt("Enter emoji (example: 🍎 🧃 🍕 😊):", btn.emoji);
+    const newEmoji = prompt("Enter emoji (example: 🍎 🧃 🚗 😊):", btn.emoji);
 
     if (newEmoji !== null && newEmoji.trim() !== "") {
         btn.emoji = newEmoji;

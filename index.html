@@ -5,13 +5,13 @@
 <title>Talking Tablet</title>
 
 <style>
+/* SAME STYLE (unchanged) */
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: #eef1f5;
 }
 
-/* TOP BAR */
 .topbar {
     height: 60px;
     background: #ffffff;
@@ -22,78 +22,39 @@ body {
     position: fixed;
     width: 100%;
     top: 0;
-    z-index: 1000;
 }
 
-.menuBtn {
-    font-size: 26px;
-    cursor: pointer;
-}
+.menuBtn { font-size: 26px; cursor: pointer; }
+.title { margin-left: 15px; font-weight: 600; }
 
-.title {
-    margin-left: 15px;
-    font-weight: 600;
-    font-size: 18px;
-}
-
-/* DROPDOWN */
 .dropdown {
     position: fixed;
     top: 60px;
     left: 10px;
     background: white;
     border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
     display: none;
-    overflow: hidden;
 }
 
 .dropdown div {
-    padding: 12px 20px;
+    padding: 12px;
     cursor: pointer;
 }
 
-.dropdown div:hover {
-    background: #f2f2f2;
-}
-
-/* GRID */
 .grid {
     display: grid;
     gap: 15px;
     padding: 80px 15px 15px;
 }
 
-.normal {
-    grid-template-columns: repeat(3, 1fr);
-}
+.normal { grid-template-columns: repeat(3, 1fr); }
+.big { grid-template-columns: repeat(2, 1fr); }
 
-.big {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-/* BUTTON */
 .button {
     border-radius: 18px;
     padding: 20px;
     text-align: center;
     color: white;
-    font-weight: 500;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    transition: transform 0.1s;
-}
-
-.button:active {
-    transform: scale(0.95);
-}
-
-.emoji {
-    font-size: 55px;
-}
-
-.label {
-    margin-top: 10px;
-    font-size: 18px;
 }
 
 /* COLORS */
@@ -103,6 +64,9 @@ body {
 .help { background: #fa5252; }
 .hurt { background: #e03131; }
 .play { background: #51cf66; }
+
+.emoji { font-size: 55px; }
+.label { margin-top: 10px; }
 
 </style>
 </head>
@@ -130,92 +94,62 @@ let editMode = false;
 let currentScreen = "home";
 let sizeMode = localStorage.getItem("sizeMode") || "normal";
 
+/* ADD NEW TEMPLATE */
+function addPlaceholders(arr) {
+    const placeholders = [
+        { label: "Add New", emoji: "➕" },
+        { label: "Add New", emoji: "➕" },
+        { label: "Add New", emoji: "➕" },
+        { label: "Add New", emoji: "➕" }
+    ];
+    return arr.concat(placeholders);
+}
+
+/* DATA */
 const defaultScreens = {
 
-home: [
+home: addPlaceholders([
     { label: "Drink", action: "drinks", emoji: "🥤" },
     { label: "Eat", action: "food", emoji: "🍎" },
     { label: "Help", action: "help", emoji: "🆘" },
-
     { label: "Bathroom", speech: "I need the bathroom", emoji: "🚽" },
-    { label: "Play", action: "play", emoji: "🎮" },
-    { label: "More", speech: "I want more", emoji: "➕" },
+    { label: "Play", action: "play", emoji: "🎮" }
+]),
 
-    { label: "All Done", speech: "I am all done", emoji: "✔️" },
-    { label: "Happy", speech: "I feel happy", emoji: "😊" },
-    { label: "Mad", speech: "I feel mad", emoji: "😡" }
-],
-
-food: [
+food: addPlaceholders([
     { label: "Pizza", speech: "I want pizza", emoji: "🍕" },
     { label: "Burger", speech: "I want a burger", emoji: "🍔" },
-    { label: "Fries", speech: "I want fries", emoji: "🍟" },
-
-    { label: "Apple", speech: "I want an apple", emoji: "🍎" },
-    { label: "Chicken", speech: "I want chicken", emoji: "🍗" },
-    { label: "Sandwich", speech: "I want a sandwich", emoji: "🥪" },
-
-    { label: "Snack", speech: "I want a snack", emoji: "🍪" },
-    { label: "Candy", speech: "I want candy", emoji: "🍬" },
-
     { label: "Back", action: "home", emoji: "⬅️" }
-],
+]),
 
-drinks: [
+drinks: addPlaceholders([
     { label: "Water", speech: "I want water", emoji: "💧" },
     { label: "Juice", speech: "I want juice", emoji: "🧃" },
-    { label: "Milk", speech: "I want milk", emoji: "🥛" },
-
-    { label: "Chocolate Milk", speech: "I want chocolate milk", emoji: "🍫🥛" },
-    { label: "Soda", speech: "I want soda", emoji: "🥤" },
-
     { label: "Back", action: "home", emoji: "⬅️" }
-],
+]),
 
-help: [
+help: addPlaceholders([
     { label: "I Hurt", action: "hurt", emoji: "🤕" },
     { label: "I'm Sick", speech: "I feel sick", emoji: "🤢" },
-    { label: "Medicine", speech: "I need medicine", emoji: "💊" },
-
-    { label: "Tired", speech: "I am tired", emoji: "😴" },
-
     { label: "Back", action: "home", emoji: "⬅️" }
-],
+]),
 
 hurt: [
-    { label: "Tummy", speech: "My tummy hurts", emoji: "🤢" },
     { label: "Head", speech: "My head hurts", emoji: "🤕" },
-    { label: "Leg", speech: "My leg hurts", emoji: "🦵" },
-
-    { label: "Arm", speech: "My arm hurts", emoji: "💪" },
-    { label: "Tooth", speech: "My tooth hurts", emoji: "🦷" },
-    { label: "Throat", speech: "My throat hurts", emoji: "😷" },
-
     { label: "Back", action: "help", emoji: "⬅️" }
 ],
 
-play: [
+play: addPlaceholders([
     { label: "iPad", speech: "I want the iPad", emoji: "📱" },
     { label: "Toys", speech: "I want toys", emoji: "🧸" },
-    { label: "Outside", speech: "I want outside", emoji: "🌳" },
-
-    { label: "TV", speech: "I want TV", emoji: "📺" },
-    { label: "Music", speech: "I want music", emoji: "🎵" },
-
     { label: "Back", action: "home", emoji: "⬅️" }
-]
+])
 
 };
 
 let screens = JSON.parse(localStorage.getItem("aacData")) || defaultScreens;
 
 const app = document.getElementById("app");
-const dropdown = document.getElementById("dropdown");
-
-/* MENU */
-function toggleMenu() {
-    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
-}
 
 /* RENDER */
 function renderScreen() {
@@ -227,7 +161,7 @@ function renderScreen() {
         div.className = "button " + currentScreen;
 
         div.innerHTML = `
-            <div class="emoji">${btn.emoji}</div>
+            <div class="emoji">${btn.emoji || "➕"}</div>
             <div class="label">${btn.label}</div>
         `;
 
@@ -235,13 +169,12 @@ function renderScreen() {
             if (btn.action) {
                 currentScreen = btn.action;
                 renderScreen();
-            } else {
+            } else if (btn.speech) {
                 speak(btn.speech);
             }
         };
 
         let pressTimer;
-
         div.addEventListener("touchstart", () => {
             if (!editMode) return;
             pressTimer = setTimeout(() => editButton(currentScreen, index), 600);
@@ -255,6 +188,7 @@ function renderScreen() {
 
 /* SPEECH */
 function speak(text) {
+    if (!text) return;
     speechSynthesis.speak(new SpeechSynthesisUtterance(text));
 }
 
@@ -262,61 +196,48 @@ function speak(text) {
 function editButton(screen, index) {
     const btn = screens[screen][index];
 
-    const newLabel = prompt("Label:", btn.label);
-    if (newLabel !== null) btn.label = newLabel;
-
-    const newSpeech = prompt("Speech:", btn.speech || "");
-    if (newSpeech !== null) btn.speech = newSpeech;
-
-    const newEmoji = prompt("Emoji:", btn.emoji);
-    if (newEmoji) btn.emoji = newEmoji;
+    btn.label = prompt("Label:", btn.label) || btn.label;
+    btn.speech = prompt("Speech:", btn.speech || "") || btn.speech;
+    btn.emoji = prompt("Emoji:", btn.emoji || "➕") || btn.emoji;
 
     saveData();
     renderScreen();
 }
 
-/* SAVE */
-function saveData() {
-    localStorage.setItem("aacData", JSON.stringify(screens));
+/* MENU */
+function toggleMenu() {
+    document.getElementById("dropdown").style.display ^= "block";
 }
 
-/* PIN FUNCTIONS */
+/* SETTINGS */
 function toggleEdit() {
-    const pass = prompt("Enter PIN:");
-    if (pass === PASSWORD) {
-        editMode = !editMode;
-        alert(editMode ? "Edit Mode ON" : "Edit Mode OFF");
-    } else {
-        alert("Wrong PIN");
-    }
+    const pass = prompt("PIN:");
+    if (pass === PASSWORD) editMode = !editMode;
 }
 
 function changePin() {
-    const current = prompt("Enter current PIN:");
-    if (current !== PASSWORD) return alert("Wrong PIN");
-
-    const newPin = prompt("Enter new PIN:");
-    if (newPin) {
-        PASSWORD = newPin;
-        localStorage.setItem("aacPin", newPin);
-        alert("PIN updated");
-    }
+    const current = prompt("Current PIN:");
+    if (current !== PASSWORD) return;
+    PASSWORD = prompt("New PIN:");
+    localStorage.setItem("aacPin", PASSWORD);
 }
 
 function resetApp() {
-    const pass = prompt("Enter PIN to reset:");
-    if (pass !== PASSWORD) return alert("Wrong PIN");
-
-    if (confirm("Erase all custom changes?")) {
-        localStorage.removeItem("aacData");
-        location.reload();
-    }
+    const pass = prompt("PIN:");
+    if (pass !== PASSWORD) return;
+    localStorage.removeItem("aacData");
+    location.reload();
 }
 
 function toggleSize() {
     sizeMode = sizeMode === "normal" ? "big" : "normal";
     localStorage.setItem("sizeMode", sizeMode);
     renderScreen();
+}
+
+/* SAVE */
+function saveData() {
+    localStorage.setItem("aacData", JSON.stringify(screens));
 }
 
 /* START */

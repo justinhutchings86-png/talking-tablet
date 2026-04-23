@@ -85,6 +85,15 @@ body {
 
 <div id="app" class="grid"></div>
 
+<!-- ICON PICKER -->
+<div id="picker" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:2000;overflow:auto;padding:20px;">
+<h2>Select Icon</h2>
+<div id="grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:15px;"></div>
+<button onclick="closePicker()">Cancel</button>
+</div>
+
+<input type="file" id="upload" accept="image/*" style="display:none">
+
 <script>
 
 let PASSWORD = localStorage.getItem("aacPin") || "1234";
@@ -92,7 +101,10 @@ let editMode = false;
 let currentScreen = "home";
 let sizeMode = localStorage.getItem("sizeMode") || "normal";
 
-/* ADD NEW BUTTONS */
+/* ICONS */
+const icons = ["🍕","🍔","🍟","🥤","🧃","🥛","💧","🍗","🍪","🍬","📱","🎮","📺","🎵","😊","😡","😴","🤢","🤕","✔️","➕","➕➕"];
+
+/* ADD NEW */
 function addNewButtons(arr) {
     return arr.concat([
         { label: "Add New", emoji: "➕" },
@@ -102,18 +114,16 @@ function addNewButtons(arr) {
     ]);
 }
 
-/* ORIGINAL DATA + ADD NEW */
+/* DATA */
 const defaultScreens = {
 
 home: addNewButtons([
     { label: "Drink", action: "drinks", emoji: "🥤" },
     { label: "Eat", action: "food", emoji: "🍎" },
     { label: "Help", action: "help", emoji: "🆘" },
-
     { label: "Bathroom", speech: "I need the bathroom", emoji: "🚽" },
     { label: "Play", action: "play", emoji: "🎮" },
     { label: "More Please", speech: "I want more please", emoji: "➕➕" },
-
     { label: "All Done", speech: "I am all done", emoji: "✔️" },
     { label: "Happy", speech: "I feel happy", emoji: "😊" },
     { label: "Mad", speech: "I feel mad", emoji: "😡" }
@@ -123,14 +133,6 @@ food: addNewButtons([
     { label: "Pizza", speech: "I want pizza", emoji: "🍕" },
     { label: "Burger", speech: "I want a burger", emoji: "🍔" },
     { label: "Fries", speech: "I want fries", emoji: "🍟" },
-
-    { label: "Apple", speech: "I want an apple", emoji: "🍎" },
-    { label: "Chicken", speech: "I want chicken", emoji: "🍗" },
-    { label: "Sandwich", speech: "I want a sandwich", emoji: "🥪" },
-
-    { label: "Snack", speech: "I want a snack", emoji: "🍪" },
-    { label: "Candy", speech: "I want candy", emoji: "🍬" },
-
     { label: "Back", action: "home", emoji: "⬅️" }
 ]),
 
@@ -138,43 +140,22 @@ drinks: addNewButtons([
     { label: "Water", speech: "I want water", emoji: "💧" },
     { label: "Juice", speech: "I want juice", emoji: "🧃" },
     { label: "Milk", speech: "I want milk", emoji: "🥛" },
-
-    { label: "Chocolate Milk", speech: "I want chocolate milk", emoji: "🍫🥛" },
-    { label: "Soda", speech: "I want soda", emoji: "🥤" },
-
     { label: "Back", action: "home", emoji: "⬅️" }
 ]),
 
 help: addNewButtons([
     { label: "I Hurt", action: "hurt", emoji: "🤕" },
     { label: "I'm Sick", speech: "I feel sick", emoji: "🤢" },
-    { label: "Medicine", speech: "I need medicine", emoji: "💊" },
-
-    { label: "Tired", speech: "I am tired", emoji: "😴" },
-
     { label: "Back", action: "home", emoji: "⬅️" }
 ]),
 
 hurt: [
-    { label: "Tummy", speech: "My tummy hurts", emoji: "🤢" },
     { label: "Head", speech: "My head hurts", emoji: "🤕" },
-    { label: "Leg", speech: "My leg hurts", emoji: "🦵" },
-
-    { label: "Arm", speech: "My arm hurts", emoji: "💪" },
-    { label: "Tooth", speech: "My tooth hurts", emoji: "🦷" },
-    { label: "Throat", speech: "My throat hurts", emoji: "😷" },
-
     { label: "Back", action: "help", emoji: "⬅️" }
 ],
 
 play: addNewButtons([
     { label: "iPad", speech: "I want the iPad", emoji: "📱" },
-    { label: "Toys", speech: "I want toys", emoji: "🧸" },
-    { label: "Outside", speech: "I want outside", emoji: "🌳" },
-
-    { label: "TV", speech: "I want TV", emoji: "📺" },
-    { label: "Music", speech: "I want music", emoji: "🎵" },
-
     { label: "Back", action: "home", emoji: "⬅️" }
 ])
 
@@ -184,10 +165,10 @@ let screens = JSON.parse(localStorage.getItem("aacData")) || defaultScreens;
 
 const app = document.getElementById("app");
 
-/* FIXED MENU */
+/* MENU */
 function toggleMenu() {
-    const menu = document.getElementById("dropdown");
-    menu.style.display = (menu.style.display === "block") ? "none" : "block";
+    const m = document.getElementById("dropdown");
+    m.style.display = m.style.display === "block" ? "none" : "block";
 }
 
 /* RENDER */
@@ -199,10 +180,13 @@ function renderScreen() {
         const div = document.createElement("div");
         div.className = "button " + currentScreen;
 
-        div.innerHTML = `
-            <div class="emoji">${btn.emoji || "➕"}</div>
-            <div class="label">${btn.label}</div>
-        `;
+        let icon = btn.image
+            ? `<img src="${btn.image}" style="width:60px">`
+            : btn.iconText
+                ? `<span style="font-size:50px;color:${btn.iconColor || "white"}">${btn.iconText}</span>`
+                : (btn.emoji || "➕");
+
+        div.innerHTML = `<div class="emoji">${icon}</div><div class="label">${btn.label}</div>`;
 
         div.onclick = () => {
             if (btn.action) {
@@ -213,71 +197,85 @@ function renderScreen() {
             }
         };
 
-        let pressTimer;
-
+        let t;
         div.addEventListener("touchstart", () => {
             if (!editMode) return;
-            pressTimer = setTimeout(() => editButton(currentScreen, index), 600);
+            t = setTimeout(() => editButton(index), 600);
         });
 
-        div.addEventListener("touchend", () => clearTimeout(pressTimer));
+        div.addEventListener("touchend", () => clearTimeout(t));
 
         app.appendChild(div);
     });
 }
 
-/* SPEECH */
-function speak(text) {
-    if (!text) return;
-    speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+/* SPEAK */
+function speak(t) {
+    speechSynthesis.speak(new SpeechSynthesisUtterance(t));
 }
 
 /* EDIT */
-function editButton(screen, index) {
-    const btn = screens[screen][index];
+function editButton(index) {
+    const btn = screens[currentScreen][index];
 
     btn.label = prompt("Label:", btn.label) || btn.label;
     btn.speech = prompt("Speech:", btn.speech || "") || btn.speech;
-    btn.emoji = prompt("Emoji:", btn.emoji || "➕") || btn.emoji;
 
-    saveData();
+    const c = prompt("1=icons  2=letter  3=image");
+
+    if (c === "1") openPicker(i => { btn.emoji=i; save(); });
+    else if (c === "2") {
+        btn.iconText = prompt("Letter:");
+        btn.iconColor = prompt("Color:", "yellow");
+        save();
+    }
+    else if (c === "3") {
+        window.editTarget = btn;
+        document.getElementById("upload").click();
+    }
+
     renderScreen();
 }
+
+/* ICON PICKER */
+function openPicker(cb) {
+    const g = document.getElementById("grid");
+    g.innerHTML="";
+    icons.forEach(i=>{
+        const d=document.createElement("div");
+        d.innerText=i;
+        d.style.fontSize="40px";
+        d.onclick=()=>{cb(i);closePicker();}
+        g.appendChild(d);
+    });
+    document.getElementById("picker").style.display="block";
+}
+
+function closePicker(){document.getElementById("picker").style.display="none";}
+
+/* IMAGE */
+document.getElementById("upload").onchange=e=>{
+    const f=e.target.files[0];
+    if(!f||!window.editTarget)return;
+    const r=new FileReader();
+    r.onload=x=>{
+        window.editTarget.image=x.target.result;
+        save();
+        renderScreen();
+    };
+    r.readAsDataURL(f);
+};
 
 /* SETTINGS */
-function toggleEdit() {
-    const pass = prompt("PIN:");
-    if (pass === PASSWORD) editMode = !editMode;
-}
+function toggleEdit(){if(prompt("PIN:")==PASSWORD)editMode=!editMode;}
+function changePin(){if(prompt("Current")==PASSWORD){PASSWORD=prompt("New");localStorage.setItem("aacPin",PASSWORD);}}
+function resetApp(){if(prompt("PIN")==PASSWORD){localStorage.removeItem("aacData");location.reload();}}
+function toggleSize(){sizeMode=sizeMode==="normal"?"big":"normal";localStorage.setItem("sizeMode",sizeMode);renderScreen();}
 
-function changePin() {
-    const current = prompt("Current PIN:");
-    if (current !== PASSWORD) return;
-    PASSWORD = prompt("New PIN:");
-    localStorage.setItem("aacPin", PASSWORD);
-}
-
-function resetApp() {
-    const pass = prompt("PIN:");
-    if (pass !== PASSWORD) return;
-    localStorage.removeItem("aacData");
-    location.reload();
-}
-
-function toggleSize() {
-    sizeMode = sizeMode === "normal" ? "big" : "normal";
-    localStorage.setItem("sizeMode", sizeMode);
-    renderScreen();
-}
-
-/* SAVE */
-function saveData() {
-    localStorage.setItem("aacData", JSON.stringify(screens));
-}
+function save(){localStorage.setItem("aacData",JSON.stringify(screens));}
 
 renderScreen();
 
 </script>
-
 </body>
 </html>

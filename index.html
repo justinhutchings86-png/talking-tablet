@@ -65,7 +65,6 @@ body {
 
 .emoji { font-size: 55px; }
 .label { margin-top: 10px; }
-
 </style>
 </head>
 
@@ -96,25 +95,13 @@ body {
 
 <script>
 
-/* ICONS */
+/* BIG EMOJI SET */
 const icons = [
 "🍕","🍔","🍟","🍗","🍖","🌭","🥪","🌮","🌯","🍝","🍜","🍣","🍩","🍪","🍰","🧁","🍎","🍌","🍇","🍉",
-"🥤","🧃","🥛","☕","🧋","🍺","🍷","💧",
+"🥤","🧃","🥛","☕","🧋","💧",
 "😊","😡","😭","😴","🤢","🤕","😃","😞","😠","😎",
 "📱","🎮","📺","🎵","⚽","🏀","🚗","🚌","🏠","🏫",
 "➕","➕➕","✔️","❌","⬅️","➡️","⬆️","⬇️"
-];
-
-/* IMAGE LIBRARY */
-const imageList = [
-"https://cdn-icons-png.flaticon.com/512/1046/1046784.png",
-"https://cdn-icons-png.flaticon.com/512/1046/1046771.png",
-"https://cdn-icons-png.flaticon.com/512/1046/1046769.png",
-"https://cdn-icons-png.flaticon.com/512/3075/3075978.png",
-"https://cdn-icons-png.flaticon.com/512/1046/1046786.png",
-"https://cdn-icons-png.flaticon.com/512/1046/1046792.png",
-"https://cdn-icons-png.flaticon.com/512/1046/1046795.png",
-"https://cdn-icons-png.flaticon.com/512/1046/1046781.png"
 ];
 
 let PASSWORD = localStorage.getItem("aacPin") || "1234";
@@ -122,7 +109,7 @@ let editMode = false;
 let currentScreen = "home";
 let sizeMode = localStorage.getItem("sizeMode") || "normal";
 
-/* ADD NEW */
+/* ADD NEW BUTTONS */
 function addNewButtons(arr) {
     return arr.concat([
         { label: "Add New", emoji: "➕" },
@@ -241,28 +228,11 @@ function editButton(index) {
 
     const c = prompt("1=icons  2=letter  3=image");
 
-    if (c === "1") {
-        openPicker((data) => {
-            if (data.emoji) {
-                btn.emoji = data.emoji;
-                delete btn.image;
-                delete btn.iconText;
-            }
-            if (data.image) {
-                btn.image = data.image;
-                delete btn.emoji;
-                delete btn.iconText;
-            }
-            save();
-            renderScreen();
-        });
-    }
+    if (c === "1") openPicker(i => { btn.emoji=i; save(); renderScreen(); });
 
     else if (c === "2") {
         btn.iconText = prompt("Letter:", "M");
         btn.iconColor = prompt("Color:", "yellow");
-        delete btn.image;
-        delete btn.emoji;
         save();
         renderScreen();
     }
@@ -274,24 +244,16 @@ function editButton(index) {
 }
 
 /* PICKER */
-function openPicker(callback) {
-    const grid = document.getElementById("grid");
-    grid.innerHTML = "";
+function openPicker(cb) {
+    const g = document.getElementById("grid");
+    g.innerHTML = "";
 
     icons.forEach(i=>{
         const d=document.createElement("div");
         d.innerText=i;
         d.style.fontSize="40px";
-        d.onclick=()=>{callback({emoji:i});closePicker();}
-        grid.appendChild(d);
-    });
-
-    imageList.forEach(src=>{
-        const img=document.createElement("img");
-        img.src=src;
-        img.style.width="60px";
-        img.onclick=()=>{callback({image:src});closePicker();}
-        grid.appendChild(img);
+        d.onclick=()=>{cb(i);closePicker();}
+        g.appendChild(d);
     });
 
     document.getElementById("picker").style.display="block";
@@ -324,4 +286,5 @@ renderScreen();
 
 </script>
 </body>
+</html>
 </html>

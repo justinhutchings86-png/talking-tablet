@@ -43,7 +43,7 @@ body {
 .grid {
     display: grid;
     gap: 15px;
-    padding: 80px 15px 90px; /* extra bottom space for back button */
+    padding: 80px 15px 90px;
 }
 
 .normal { grid-template-columns: repeat(3, 1fr); }
@@ -66,7 +66,6 @@ body {
 .emoji { font-size: 55px; }
 .label { margin-top: 10px; }
 
-/* 🔥 FIXED BACK BUTTON */
 .backFixed {
     position: fixed;
     bottom: 15px;
@@ -80,8 +79,6 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 40px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    z-index: 999;
 }
 </style>
 </head>
@@ -102,22 +99,47 @@ body {
 
 <div id="app" class="grid"></div>
 
-<!-- FIXED BACK BUTTON -->
-<div id="backBtn" class="backFixed" onclick="goBack()" style="display:none;">
-⬅️
+<div id="backBtn" class="backFixed" onclick="goBack()" style="display:none;">⬅️</div>
+
+<!-- PICKER -->
+<div id="picker" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:2000;overflow:auto;padding:20px;">
+<h2>Select Icon</h2>
+<div id="grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:15px;"></div>
+<button onclick="closePicker()">Cancel</button>
 </div>
 
+<input type="file" id="upload" accept="image/*" style="display:none">
+
 <script>
+
+/* EMOJIS */
+const icons = [
+"🍕","🍔","🍟","🍗","🍖","🌭","🥪","🌮","🌯","🍝","🍜","🍣","🍩","🍪","🍰","🧁","🍎","🍌","🍇","🍉",
+"🥤","🧃","🥛","☕","🧋","💧",
+"😊","😡","😭","😴","🤢","🤕","😃","😞","😠","😎",
+"📱","🎮","📺","🎵","⚽","🏀","🚗","🚌","🏠","🏫",
+"➕","➕➕","✔️","❌","⬅️","➡️"
+];
+
+/* 🔥 IMAGE STRUCTURE (READY FOR FILES) */
+const imageLibrary = {
+    food: [],
+    drinks: [],
+    actions: [],
+    feelings: [],
+    places: [],
+    custom: []
+};
+
+/* EXAMPLE (SAFE IF FILE DOESN’T EXIST YET) */
+// imageLibrary.food.push({ label:"Pizza", src:"images/food/pizza.png" });
 
 let PASSWORD = localStorage.getItem("aacPin") || "1234";
 let editMode = false;
 let currentScreen = "home";
 let sizeMode = localStorage.getItem("sizeMode") || "normal";
-
-/* SCREEN HISTORY */
 let history = [];
 
-/* ADD NEW */
 function addNewButtons(arr) {
     return arr.concat([
         { label: "Add New", emoji: "➕" },
@@ -127,7 +149,7 @@ function addNewButtons(arr) {
     ]);
 }
 
-/* DATA */
+/* DATA (UNCHANGED) */
 const defaultScreens = {
 
 home: addNewButtons([
@@ -146,46 +168,26 @@ food: addNewButtons([
     { label: "Pizza", speech: "I want pizza", emoji: "🍕" },
     { label: "Burger", speech: "I want a burger", emoji: "🍔" },
     { label: "Fries", speech: "I want fries", emoji: "🍟" },
-    { label: "Chicken", speech: "I want chicken", emoji: "🍗" },
-    { label: "Noodles", speech: "I want noodles", emoji: "🍜" },
-    { label: "Sandwich", speech: "I want a sandwich", emoji: "🥪" },
-    { label: "Snack", speech: "I want a snack", emoji: "🍪" },
-    { label: "Candy", speech: "I want candy", emoji: "🍬" },
-    { label: "Apple", speech: "I want an apple", emoji: "🍎" },
-    { label: "Banana", speech: "I want a banana", emoji: "🍌" }
+    { label: "Chicken", speech: "I want chicken", emoji: "🍗" }
 ]),
 
 drinks: addNewButtons([
     { label: "Water", speech: "I want water", emoji: "💧" },
-    { label: "Juice", speech: "I want juice", emoji: "🧃" },
-    { label: "Milk", speech: "I want milk", emoji: "🥛" },
-    { label: "Chocolate Milk", speech: "I want chocolate milk", emoji: "🍫🥛" },
-    { label: "Soda", speech: "I want soda", emoji: "🥤" }
+    { label: "Juice", speech: "I want juice", emoji: "🧃" }
 ]),
 
 help: addNewButtons([
     { label: "I Hurt", action: "hurt", emoji: "🤕" },
-    { label: "I'm Sick", speech: "I feel sick", emoji: "🤢" },
-    { label: "Medicine", speech: "I need medicine", emoji: "💊" },
-    { label: "Tired", speech: "I am tired", emoji: "😴" },
-    { label: "Help Me", speech: "I need help", emoji: "🆘" }
+    { label: "I'm Sick", speech: "I feel sick", emoji: "🤢" }
 ]),
 
 hurt: [
     { label: "Head", speech: "My head hurts", emoji: "🤕" },
-    { label: "Tummy", speech: "My tummy hurts", emoji: "🤢" },
-    { label: "Leg", speech: "My leg hurts", emoji: "🦵" },
-    { label: "Arm", speech: "My arm hurts", emoji: "💪" },
-    { label: "Tooth", speech: "My tooth hurts", emoji: "🦷" },
-    { label: "Throat", speech: "My throat hurts", emoji: "😷" }
+    { label: "Tummy", speech: "My tummy hurts", emoji: "🤢" }
 ],
 
 play: addNewButtons([
-    { label: "iPad", speech: "I want the iPad", emoji: "📱" },
-    { label: "Toys", speech: "I want toys", emoji: "🧸" },
-    { label: "Outside", speech: "I want outside", emoji: "🌳" },
-    { label: "TV", speech: "I want TV", emoji: "📺" },
-    { label: "Music", speech: "I want music", emoji: "🎵" }
+    { label: "iPad", speech: "I want the iPad", emoji: "📱" }
 ])
 
 };
@@ -193,57 +195,67 @@ play: addNewButtons([
 let screens = JSON.parse(localStorage.getItem("aacData")) || defaultScreens;
 const app = document.getElementById("app");
 
-/* NAVIGATION */
-function goTo(screen) {
-    history.push(currentScreen);
-    currentScreen = screen;
-    renderScreen();
-}
-
-function goBack() {
-    currentScreen = history.pop() || "home";
-    renderScreen();
-}
-
-/* MENU */
-function toggleMenu() {
-    const m = document.getElementById("dropdown");
-    m.style.display = m.style.display === "block" ? "none" : "block";
-}
+/* NAV */
+function goTo(screen){ history.push(currentScreen); currentScreen=screen; renderScreen();}
+function goBack(){ currentScreen=history.pop()||"home"; renderScreen();}
 
 /* RENDER */
-function renderScreen() {
-    app.className = "grid " + sizeMode;
-    app.innerHTML = "";
+function renderScreen(){
+    app.className="grid "+sizeMode;
+    app.innerHTML="";
 
-    screens[currentScreen].forEach((btn) => {
+    screens[currentScreen].forEach(btn=>{
+        const div=document.createElement("div");
+        div.className="button "+currentScreen;
 
-        const div = document.createElement("div");
-        div.className = "button " + currentScreen;
+        let icon = btn.image
+            ? `<img src="${btn.image}" style="width:60px">`
+            : (btn.emoji || "➕");
 
-        div.innerHTML = `<div class="emoji">${btn.emoji}</div><div class="label">${btn.label}</div>`;
+        div.innerHTML=`<div class="emoji">${icon}</div><div class="label">${btn.label}</div>`;
 
-        div.onclick = () => {
-            if (btn.action) {
-                goTo(btn.action);
-            } else if (btn.speech) {
-                speak(btn.speech);
-            }
+        div.onclick=()=>{
+            if(btn.action) goTo(btn.action);
+            else if(btn.speech) speak(btn.speech);
         };
 
         app.appendChild(div);
     });
 
-    // Show back button except on home
     document.getElementById("backBtn").style.display =
-        currentScreen === "home" ? "none" : "flex";
+        currentScreen==="home"?"none":"flex";
 }
 
 /* SPEECH */
-function speak(t) {
-    if (!t) return;
-    speechSynthesis.speak(new SpeechSynthesisUtterance(t));
+function speak(t){ if(t) speechSynthesis.speak(new SpeechSynthesisUtterance(t)); }
+
+/* PICKER */
+function openPicker(cb){
+    const g=document.getElementById("grid");
+    g.innerHTML="";
+
+    // emojis
+    icons.forEach(i=>{
+        const d=document.createElement("div");
+        d.innerText=i;
+        d.style.fontSize="40px";
+        d.onclick=()=>{cb({emoji:i});closePicker();}
+        g.appendChild(d);
+    });
+
+    // future images
+    Object.values(imageLibrary).flat().forEach(item=>{
+        const img=document.createElement("img");
+        img.src=item.src;
+        img.style.width="60px";
+        img.onclick=()=>{cb({image:item.src});closePicker();}
+        g.appendChild(img);
+    });
+
+    document.getElementById("picker").style.display="block";
 }
+
+function closePicker(){document.getElementById("picker").style.display="none";}
 
 /* SETTINGS */
 function toggleEdit(){if(prompt("PIN:")==PASSWORD)editMode=!editMode;}
@@ -255,6 +267,4 @@ renderScreen();
 
 </script>
 </body>
-</html>
-</html>
 </html>

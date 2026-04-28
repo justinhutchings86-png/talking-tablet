@@ -88,9 +88,10 @@ body { margin:0; font-family:sans-serif; background:#eef1f5; }
 
 <div class="tabs">
     <button onclick="showCategory('emoji')">😀</button>
+    <button onclick="showCategory('actions')">🎮</button>
+    <button onclick="showCategory('feelings')">😊</button>
     <button onclick="showCategory('food')">🍕</button>
     <button onclick="showCategory('drinks')">🥤</button>
-    <button onclick="showCategory('actions')">🎮</button>
 </div>
 
 <div id="grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:15px;"></div>
@@ -109,11 +110,12 @@ const icons = [
 "➕","✔️"
 ];
 
-/* image library */
+/* 🔥 UPDATED IMAGE LIBRARY */
 const imageLibrary = {
  food:[],
  drinks:[],
- actions:[]
+ actions:[],
+ feelings:[]
 };
 
 let pickerCallback;
@@ -133,7 +135,7 @@ function addNewButtons(arr){
  ]);
 }
 
-/* DATA */
+/* DATA (UNCHANGED — SAFE) */
 const defaultScreens = {
 
 home:addNewButtons([
@@ -267,6 +269,7 @@ function openPicker(cb){
  showCategory("emoji");
 }
 
+/* 🔥 FIXED CATEGORY SUPPORT */
 function showCategory(type){
  const g=document.getElementById("grid");
  g.innerHTML="";
@@ -280,7 +283,7 @@ function showCategory(type){
   });
  }
 
- if(type==="food"||type==="drinks"||type==="actions"){
+ if(type==="food"||type==="drinks"||type==="actions"||type==="feelings"){
   imageLibrary[type].forEach(item=>{
    let img=document.createElement("img");
    img.src=item.src;
@@ -310,4 +313,5 @@ render();
 
 </script>
 </body>
+</html>
 </html>

@@ -110,11 +110,18 @@ const icons = [
 "➕","✔️"
 ];
 
-/* 🔥 UPDATED IMAGE LIBRARY */
+/* 🔥 YOUR ICONS ADDED HERE */
 const imageLibrary = {
  food:[],
  drinks:[],
- actions:[],
+ actions:[
+  {src:"images/actions/want.png"},
+  {src:"images/actions/eat.png"},
+  {src:"images/actions/drink.png"},
+  {src:"images/actions/help.png"},
+  {src:"images/actions/hurt.png"},
+  {src:"images/actions/play.png"}
+ ],
  feelings:[]
 };
 
@@ -135,7 +142,7 @@ function addNewButtons(arr){
  ]);
 }
 
-/* DATA (UNCHANGED — SAFE) */
+/* DATA */
 const defaultScreens = {
 
 home:addNewButtons([
@@ -269,7 +276,6 @@ function openPicker(cb){
  showCategory("emoji");
 }
 
-/* 🔥 FIXED CATEGORY SUPPORT */
 function showCategory(type){
  const g=document.getElementById("grid");
  g.innerHTML="";
@@ -313,5 +319,4 @@ render();
 
 </script>
 </body>
-</html>
 </html>

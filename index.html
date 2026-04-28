@@ -34,22 +34,31 @@ body { margin:0; font-family:sans-serif; background:#eef1f5; }
 .hurt { background:#e03131; }
 .play { background:#51cf66; }
 
-.emoji { font-size:50px; }
+.emoji img { width:60px; height:60px; object-fit:contain; }
 .label { margin-top:10px; }
 
 .backFixed {
     position:fixed; bottom:15px; right:15px;
-    width:80px; height:80px; background:#212529;
-    color:white; border-radius:20px;
-    display:flex; align-items:center; justify-content:center;
+    width:80px; height:80px;
+    background:#212529;
+    color:white;
+    border-radius:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     font-size:40px;
 }
 
 /* picker */
 #picker {
-    display:none; position:fixed; top:0; left:0;
-    width:100%; height:100%; background:white;
-    z-index:2000; overflow:auto; padding:20px;
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:white;
+    z-index:2000;
+    overflow:auto;
+    padding:20px;
 }
 
 .tabs button {
@@ -58,10 +67,7 @@ body { margin:0; font-family:sans-serif; background:#eef1f5; }
     font-size:16px;
 }
 
-#grid img {
-    width:60px;
-    cursor:pointer;
-}
+#grid img { width:60px; cursor:pointer; }
 </style>
 </head>
 
@@ -88,8 +94,6 @@ body { margin:0; font-family:sans-serif; background:#eef1f5; }
 <div class="tabs">
     <button onclick="showCategory('emoji')">😀</button>
     <button onclick="showCategory('actions')">🎮</button>
-    <button onclick="showCategory('food')">🍕</button>
-    <button onclick="showCategory('drinks')">🥤</button>
 </div>
 
 <div id="grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:15px;"></div>
@@ -102,21 +106,20 @@ body { margin:0; font-family:sans-serif; background:#eef1f5; }
 /* emojis */
 const icons = ["🍕","🍔","🍟","🍗","🍜","🍎","🍌","🥤","🧃","🥛","😊","😡","🤢","🤕","📱","🎮","📺","🎵","➕","✔️"];
 
-/* 🔥 YOUR ICONS CONNECTED */
+/* 🔥 IMAGE LIBRARY (CORRECT + SAFE) */
 const imageLibrary = {
- food:[],
- drinks:[],
  actions:[
-  {src:"images/actions/want.png"},
-  {src:"images/actions/drink.png"},
-  {src:"images/actions/eat.png"},
-  {src:"images/actions/help.png"},
-  {src:"images/actions/hurt.png"},
-  {src:"images/actions/play.png"}
+  {src:"./images/actions/want.png"},
+  {src:"./images/actions/drink.png"},
+  {src:"./images/actions/eat.png"},
+  {src:"./images/actions/help.png"},
+  {src:"./images/actions/hurt.png"},
+  {src:"./images/actions/play.png"}
  ]
 };
 
 let pickerCallback;
+
 let PASSWORD = localStorage.getItem("aacPin") || "1234";
 let editMode=false;
 let currentScreen="home";
@@ -132,6 +135,7 @@ function addNewButtons(arr){
  ]);
 }
 
+/* ✅ FULL ORIGINAL DATA RESTORED */
 const defaultScreens = {
 
 home:addNewButtons([
@@ -149,32 +153,58 @@ home:addNewButtons([
 food:addNewButtons([
 {label:"Pizza",speech:"I want pizza",emoji:"🍕"},
 {label:"Burger",speech:"I want a burger",emoji:"🍔"},
-{label:"Fries",speech:"I want fries",emoji:"🍟"}
+{label:"Fries",speech:"I want fries",emoji:"🍟"},
+{label:"Chicken",speech:"I want chicken",emoji:"🍗"},
+{label:"Noodles",speech:"I want noodles",emoji:"🍜"},
+{label:"Sandwich",speech:"I want a sandwich",emoji:"🥪"},
+{label:"Snack",speech:"I want a snack",emoji:"🍪"},
+{label:"Candy",speech:"I want candy",emoji:"🍬"},
+{label:"Apple",speech:"I want an apple",emoji:"🍎"},
+{label:"Banana",speech:"I want a banana",emoji:"🍌"}
 ]),
 
 drinks:addNewButtons([
-{label:"Water",speech:"I want water",emoji:"💧"}
+{label:"Water",speech:"I want water",emoji:"💧"},
+{label:"Juice",speech:"I want juice",emoji:"🧃"},
+{label:"Milk",speech:"I want milk",emoji:"🥛"},
+{label:"Chocolate Milk",speech:"I want chocolate milk",emoji:"🍫🥛"},
+{label:"Soda",speech:"I want soda",emoji:"🥤"}
 ]),
 
 help:addNewButtons([
-{label:"I Hurt",action:"hurt",emoji:"🤕"}
+{label:"I Hurt",action:"hurt",emoji:"🤕"},
+{label:"I'm Sick",speech:"I feel sick",emoji:"🤢"},
+{label:"Medicine",speech:"I need medicine",emoji:"💊"},
+{label:"Tired",speech:"I am tired",emoji:"😴"},
+{label:"Help Me",speech:"I need help",emoji:"🆘"}
 ]),
 
 hurt:[
-{label:"Head",speech:"My head hurts",emoji:"🤕"}
+{label:"Head",speech:"My head hurts",emoji:"🤕"},
+{label:"Tummy",speech:"My tummy hurts",emoji:"🤢"},
+{label:"Leg",speech:"My leg hurts",emoji:"🦵"},
+{label:"Arm",speech:"My arm hurts",emoji:"💪"},
+{label:"Tooth",speech:"My tooth hurts",emoji:"🦷"},
+{label:"Throat",speech:"My throat hurts",emoji:"😷"}
 ],
 
 play:addNewButtons([
-{label:"Toys",speech:"I want toys",emoji:"🧸"}
+{label:"iPad",speech:"I want the iPad",emoji:"📱"},
+{label:"Toys",speech:"I want toys",emoji:"🧸"},
+{label:"Outside",speech:"I want outside",emoji:"🌳"},
+{label:"TV",speech:"I want TV",emoji:"📺"},
+{label:"Music",speech:"I want music",emoji:"🎵"}
 ])
 };
 
 let screens = JSON.parse(localStorage.getItem("aacData")) || defaultScreens;
 const app=document.getElementById("app");
 
+/* nav */
 function goTo(s){history.push(currentScreen);currentScreen=s;render();}
 function goBack(){currentScreen=history.pop()||"home";render();}
 
+/* render */
 function render(){
  app.className="grid "+sizeMode;
  app.innerHTML="";
@@ -184,10 +214,10 @@ function render(){
   d.className="button "+currentScreen;
 
   let icon = btn.image
-   ? `<img src="${btn.image}" style="width:60px">`
-   : (btn.emoji || "➕");
+   ? `<img src="${btn.image}">`
+   : btn.emoji;
 
-  d.innerHTML=`<div class="emoji">${icon}</div><div>${btn.label}</div>`;
+  d.innerHTML=`<div class="emoji">${icon}</div><div class="label">${btn.label}</div>`;
 
   d.onclick=()=>{
    if(btn.action) goTo(btn.action);
@@ -209,10 +239,12 @@ function render(){
  currentScreen==="home"?"none":"flex";
 }
 
+/* speech */
 function speak(t){
  if(t) speechSynthesis.speak(new SpeechSynthesisUtterance(t));
 }
 
+/* edit */
 function edit(i){
  const btn=screens[currentScreen][i];
 
@@ -226,6 +258,7 @@ function edit(i){
  });
 }
 
+/* picker */
 function openPicker(cb){
  pickerCallback = cb;
  document.getElementById("picker").style.display="block";
@@ -259,6 +292,7 @@ function closePicker(){
  document.getElementById("picker").style.display="none";
 }
 
+/* settings */
 function toggleMenu(){
  let m=document.getElementById("dropdown");
  m.style.display=m.style.display==="block"?"none":"block";

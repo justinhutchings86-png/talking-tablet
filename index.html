@@ -104,9 +104,15 @@ body { margin:0; font-family:sans-serif; background:#eef1f5; }
 <script>
 
 /* emojis */
-const icons = ["🍕","🍔","🍟","🍗","🍜","🍎","🍌","🥤","🧃","🥛","😊","😡","🤢","🤕","📱","🎮","📺","🎵","➕","✔️"];
+const icons = [
+"🍕","🍔","🍟","🍗","🍖","🌭","🥪","🌮","🌯","🍝","🍜","🍣","🍩","🍪","🍰","🧁","🍎","🍌","🍇","🍉",
+"🥤","🧃","🥛","☕","🧋","💧",
+"😊","😡","😭","😴","🤢","🤕","😃","😞","😠","😎",
+"📱","🎮","📺","🎵","⚽","🏀","🚗","🚌","🏠","🏫",
+"➕","➕➕","✔️","❌","⬅️","➡️"
+];
 
-/* 🔥 IMAGE LIBRARY (CORRECT + SAFE) */
+/* image library */
 const imageLibrary = {
  actions:[
   {src:"./images/actions/want.png"},
@@ -126,6 +132,7 @@ let currentScreen="home";
 let sizeMode=localStorage.getItem("sizeMode")||"normal";
 let history=[];
 
+/* ADD NEW BUTTONS */
 function addNewButtons(arr){
  return arr.concat([
   {label:"Add New",emoji:"➕"},
@@ -135,7 +142,7 @@ function addNewButtons(arr){
  ]);
 }
 
-/* ✅ FULL ORIGINAL DATA RESTORED */
+/* FULL DATA */
 const defaultScreens = {
 
 home:addNewButtons([
@@ -225,12 +232,21 @@ function render(){
   };
 
   let t;
+
+  /* MOBILE */
   d.addEventListener("touchstart",()=>{
    if(!editMode) return;
    t=setTimeout(()=>edit(i),600);
   });
-
   d.addEventListener("touchend",()=>clearTimeout(t));
+
+  /* DESKTOP */
+  d.addEventListener("mousedown",()=>{
+   if(!editMode) return;
+   t=setTimeout(()=>edit(i),600);
+  });
+  d.addEventListener("mouseup",()=>clearTimeout(t));
+  d.addEventListener("mouseleave",()=>clearTimeout(t));
 
   app.appendChild(d);
  });
